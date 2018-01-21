@@ -1,0 +1,41 @@
+import numpy
+import scipy.special
+
+class neuralNetwork:
+    def __init__(self, input, hidden, output, rate):
+        self.input_nodes = input
+        self.hidden_nodes = hidden
+        self.output_nodes = output
+        self.learning_rate = rate
+
+        self.w_input_hidden = numpy.random.rand(self.hidden_nodes, self.input_nodes) - 0.5
+        self.w_hidden_output = numpy.random.rand(self.output_nodes, self.hidden_nodes) - 0.5
+        print('Weights input_hidden: ')
+        print(self.w_input_hidden)
+        print('Weights hidden_output: ')
+        print(self.w_hidden_output)
+
+        self.activation_function = lambda x: scipy.special.expit(x)
+        pass
+
+    def train():
+        pass
+
+    def query(self, inputs_list):
+
+        inputs = numpy.array(inputs_list, ndmin=2).T
+        print('Inputs:')
+        print(inputs)
+        hidden_inputs = numpy.dot(self.w_input_hidden, inputs)
+        hidden_outputs = self.activation_function(hidden_inputs)
+        print('Hidden outputs: ')
+        print(hidden_outputs)
+        final_inputs = numpy.dot(self.w_hidden_output, hidden_outputs)
+        final_outputs = self.activation_function(final_inputs)
+        print('Final outputs: ')
+        print(final_outputs)
+        return final_outputs
+
+
+neural = neuralNetwork(4, 3, 3, 0.3)
+neural.query([0.25, 0.5, 0.75, 0.3])

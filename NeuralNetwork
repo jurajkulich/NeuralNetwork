@@ -1,5 +1,6 @@
 import numpy
 import scipy.special
+import matplotlib.pyplot as plt
 
 class neuralNetwork:
     def __init__(self, input, hidden, output, rate):
@@ -10,11 +11,12 @@ class neuralNetwork:
 
         self.w_input_hidden = numpy.random.rand(self.hidden_nodes, self.input_nodes) - 0.5
         self.w_hidden_output = numpy.random.rand(self.output_nodes, self.hidden_nodes) - 0.5
-        print('Weights input_hidden: ')
-        print(self.w_input_hidden)
-        print('Weights hidden_output: ')
-        print(self.w_hidden_output)
+        #print('Weights input_hidden: ')
+        #print(self.w_input_hidden)
+        #print('Weights hidden_output: ')
+        #print(self.w_hidden_output)
 
+        # define sigmoid function
         self.activation_function = lambda x: scipy.special.expit(x)
         pass
 
@@ -31,29 +33,80 @@ class neuralNetwork:
         output_errors = targets - final_outputs
 
         hidden_errors = numpy.dot(self.w_hidden_output.T, output_errors)
-        print('Hidden errors: ')
-        print(hidden_errors)
+        #print('Hidden errors: ')
+        #print(hidden_errors)
 
         self.w_hidden_output += self.learning_rate * numpy.dot((output_errors*final_outputs*(1.0-final_outputs)), numpy.transpose(hidden_outputs))
         self.w_input_hidden += self.learning_rate * numpy.dot((hidden_errors * hidden_outputs * (1.0 - hidden_outputs)), numpy.transpose(inputs))
         pass
 
     def query(self, inputs_list):
-
         inputs = numpy.array(inputs_list, ndmin=2).T
-        print('Inputs:')
-        print(inputs)
+        #print('Inputs:')
+        #print(inputs)
         hidden_inputs = numpy.dot(self.w_input_hidden, inputs)
         hidden_outputs = self.activation_function(hidden_inputs)
-        print('Hidden outputs: ')
-        print(hidden_outputs)
+        #print('Hidden outputs: ')
+        #print(hidden_outputs)
         final_inputs = numpy.dot(self.w_hidden_output, hidden_outputs)
         final_outputs = self.activation_function(final_inputs)
-        print('Final outputs: ')
-        print(final_outputs)
+        #print('Final outputs: ')
+        #print(final_outputs)
         return final_outputs
 
 
-neural = neuralNetwork(4, 3, 3, 0.3)
-neural.query([0.25, 0.5, 0.75, 0.3])
-neural.train([0.25, 0.5, 0.75, 0.3], [0.99 , 0.4, 0.75])
+
+input_nodes = 784
+hidden_nodes = 200
+output_nodes = 10
+learning_rate = 0.20
+
+neural_network = neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
+
+data_file = open("mnist_train_100.csv", 'r')
+data_list = data_file.readlines()
+data_file.close()
+
+# epochs = 5
+# for epoch in range(epochs):
+for record in data_list:
+    all_values = record.split(',')
+    inputs = (numpy.asfarray(all_values[1:])/255*0.99+0.01)
+    targets = numpy.zeros(output_nodes) + 0.01
+    targets[int(all_values[0])] = 0.99
+    neural_network.train(inputs, targets)
+    print(all_values[0])
+    print(neural_network.query(inputs))
+    pass
+    #pass
+
+test_data_file = open("mnist_test_10.csv", 'r')
+test_data_list = test_data_file.readlines()
+test_data_file.close()
+
+
+
+scorecard = []
+for record in test_data_list:
+    all_values = record.split(',')
+    correct_label = int(all_values[0])
+    print(correct_label, "correct label")
+    inputs = (numpy.asfarray(all_values[1:]) / 255.0 * 0.99) + 0.01
+    outputs = neural_network.query(inputs)
+    label = numpy.argmax(outputs)
+    print(label, "network's answer")
+    if( label == correct_label):
+        scorecard.append(1)
+    else:
+        scorecard.append(0)
+        pass
+
+scorecard_array = numpy.asarray(scorecard)
+print ("performance = ", scorecard_array.sum() / scorecard_array.size)
+
+all_values = test_data_list[(9)].split(',')
+print(all_values[0])
+image = numpy.asfarray(all_values[1:]).reshape(28 ,28)
+plt.imshow(image, cmap="Greys", interpolation="None")
+print(neural_network.query((numpy.asfarray(all_values[1:])/255*0.99+0.01)))
+plt.show()
